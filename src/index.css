@@ -1,0 +1,15 @@
+@import url("https://fonts.googleapis.com/css2?family=Maven+Pro:wght@400;500;600;700;800;900&display=swap");
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+:root {
+  --theme-color1: #fffbf4;
+  --theme-color2: #c2fff8;
+  --theme-color3: #5ec0fe;
+  --theme-color4: #0681d7;
+  --theme-color5: #0945a9;
+}
+
+body {
+  background-color: var(--theme-color1);
+}
