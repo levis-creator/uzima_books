@@ -29,7 +29,7 @@ const Books = () => {
         <Loading />
       ) : (
         <div>
-          <div className="p-4 grid grid-cols-2 gap-4 ">
+          <div className="p-4 grid grid-cols-2 gap-4 sm:grid-cols-3 sm:px-8">
             {console.log(book)}
             {console.log(total_pages)}
             {book.map((item) => (

@@ -14,8 +14,8 @@ const Index = ({}) => {
   }, []);
   return (
     <div>
-      <h2>Fiction</h2>
-      <div className="grid grid-cols-2 gap-3">
+      <h2 className="font-bold text-lg">Fiction</h2>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {data.map((items) => (
           <Book_card key={items.work_id} data={items} />
         ))}

@@ -2,8 +2,10 @@ import { AnimatePresence, motion } from "framer-motion";
 import { menu_items } from "../../api/local/menu_items";
 import { nav_items } from "../../api/local/nav_item";
 import { Link } from "react-router-dom";
+import useAuthContext from "../../hooks/useAuthContext";
 
 const NavbarModel = ({ isVisible, handleClose }) => {
+  const { signout } = useAuthContext();
   return (
     <>
       <AnimatePresence>
@@ -40,6 +42,12 @@ const NavbarModel = ({ isVisible, handleClose }) => {
                     </li>
                   );
                 })}
+                <button
+                  onClick={() => signout()}
+                  className="bg-white text-theme-color1 rounded-full shadow-lg px-2"
+                >
+                  Sign out
+                </button>
               </ul>
             </div>
           </motion.div>

@@ -1,5 +1,3 @@
-import sample from "../assets/books/paolo-chiabrando-9dXSoi6VXEA-unsplash.jpg";
-
 const Book_card = ({ data }) => {
   return (
     <div className="rounded-xl bg-white overflow-hidden shadow-md">
