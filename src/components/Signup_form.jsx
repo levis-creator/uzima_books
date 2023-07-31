@@ -1,16 +1,14 @@
-import { BiErrorCircle } from "react-icons/bi";
-import { BsFillEyeSlashFill } from "react-icons/bs";
-import { BsFillEyeFill } from "react-icons/bs";
-import { useState } from "react";
-import { FcGoogle } from "react-icons/fc";
-import { Link, useNavigate } from "react-router-dom";
 import { validate } from "email-validator";
-import PasswordValidator from "password-validator/src";
 import {
   createUserWithEmailAndPassword,
   sendEmailVerification,
   updateProfile,
 } from "firebase/auth";
+import { useState } from "react";
+import { BiErrorCircle } from "react-icons/bi";
+import { BsFillEyeFill, BsFillEyeSlashFill } from "react-icons/bs";
+import { FcGoogle } from "react-icons/fc";
+import { Link, useNavigate } from "react-router-dom";
 import { auth } from "../lib/firebase";
 const Signup_form = () => {
   const input_styles = [

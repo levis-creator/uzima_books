@@ -5,7 +5,7 @@ import {
   signOut,
 } from "firebase/auth";
 import { collection, getDocs, query, where } from "firebase/firestore";
-import { createContext, useCallback, useEffect, useState } from "react";
+import { createContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import useUiContext from "../hooks/useUiContext";
 import { auth, db } from "../lib/firebase";

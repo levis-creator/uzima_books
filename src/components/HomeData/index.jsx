@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { fetch_data } from "../../api/data/sample";
 import Book_card from "../Book_card";
 
-const Index = ({}) => {
+const Index = () => {
   const [data, setData] = useState([]);
   useEffect(() => {
     const fetching = async () => {
