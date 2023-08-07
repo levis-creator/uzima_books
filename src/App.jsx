@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Form, Navigate, Route, Routes } from "react-router-dom";
 
 import Navbar from "./components/Navbar";
 import ProtectAdmin from "./components/ProtectAdmin";
@@ -10,6 +10,9 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Books from "./pages/books/Books";
 import Home from "./pages/page";
+import Add_book from "./pages/Admin/pages/Add_book";
+import FormContext from "./context/FormContext.jsx";
+import FormProvider from "./context/FormContext.jsx";
 
 function App() {
   const { admin } = useUiContext();
@@ -25,6 +28,9 @@ function App() {
           <Route path="/admin">
             <Route index element={<Admin />} />
             <Route path="all-books" element={<All_books />} />
+            <Route element={<FormProvider />}>
+              <Route path="add_book" element={<Add_book />} />
+            </Route>
           </Route>
         </Route>
         <Route path="/access-denied" element={<AccessDenied />} />

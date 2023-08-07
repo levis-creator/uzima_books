@@ -21,7 +21,7 @@ const Navbar = () => {
   return (
     <>
       <NavbarModel isVisible={isOpen} handleClose={handleOpen} />
-      <header className="bg-white py-6 px-4 shadow-md rounded-b-2xl sm:px-8">
+      <header className="bg-white py-6 px-4 shadow-md rounded-b-2xl sm:px-8 w-full">
         <nav className="w-full gap-5 flex items-center justify-between">
           {!admin && (
             <button onClick={handleOpen} className="text-xl">
@@ -29,7 +29,7 @@ const Navbar = () => {
             </button>
           )}
           <div className="flex-1">
-            <div className=" w-36">
+            <div className=" w-24">
               <img
                 src={nav_items.logo}
                 alt={nav_items.alt}

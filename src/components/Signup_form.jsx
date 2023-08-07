@@ -10,6 +10,7 @@ import { BsFillEyeFill, BsFillEyeSlashFill } from "react-icons/bs";
 import { FcGoogle } from "react-icons/fc";
 import { Link, useNavigate } from "react-router-dom";
 import { auth } from "../lib/firebase";
+import useAuthContext from "../hooks/useAuthContext";
 const Signup_form = () => {
   const input_styles = [
     "bg-slate-50 border-2 px-3 py-3 rounded-md focus:outline-theme-color2 focus:border-0",
@@ -25,7 +26,7 @@ const Signup_form = () => {
     password: "",
     confirmPassword: "",
   });
-
+  const { googleSignin } = useAuthContext();
   // handle form input
   const handleChange = (e) => {
     setFormData((values) => ({ ...values, [e.target.name]: e.target.value }));
@@ -161,19 +162,22 @@ const Signup_form = () => {
             Sign up
           </button>
           <span className="w-full text-center">or</span>
-          <button className="bg-theme-color1 text-white rounded-md py-2 flex items-center justify-center gap-3">
+          <button
+            className="bg-theme-color1 text-white rounded-md py-2 flex items-center justify-center gap-3"
+            onClick={googleSignin}
+          >
             <span className="text-2xl">
               <FcGoogle />
             </span>
             Sign up with google
           </button>
         </div>
-        <div className="flex justify-center items-center gap-1">
+        <p className="text-center leading-relaxed">
           Already have an account?
-          <Link to="/login" className="text-center text-theme-color2">
+          <Link to="/login" className="text-center text-theme-color2 px-1">
             Sign in
           </Link>
-        </div>
+        </p>
       </div>
     </div>
   );

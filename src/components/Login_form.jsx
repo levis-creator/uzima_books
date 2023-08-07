@@ -1,12 +1,12 @@
 import { validate } from "email-validator";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { useState } from "react";
-import { BiErrorCircle } from "react-icons/bi";
 import { BsFillEyeFill, BsFillEyeSlashFill } from "react-icons/bs";
 import { FcGoogle } from "react-icons/fc";
 import { Link, useNavigate } from "react-router-dom";
-import { auth } from "../lib/firebase";
 import useAuthContext from "../hooks/useAuthContext";
+import { auth } from "../lib/firebase";
+import Error from "./ErrorAlert.jsx";
 
 const Login_form = () => {
   const input_styles = [
@@ -63,14 +63,7 @@ const Login_form = () => {
       <div className="bg-white space-y-5  shadow-md p-7 rounded-xl">
         <h2 className="font-semibold text-xl text-theme-color1">Sign in</h2>
         <div className="flex flex-col gap-3 ">
-          {error && (
-            <span className="bg-red-100 flex  items-center gap-2 p-2 px rounded-md text-red-600">
-              <div className="">
-                <BiErrorCircle />
-              </div>
-              <div className="text-red-500 text-sm">{message}</div>
-            </span>
-          )}
+          <Error error={error} message={message} />
           <input
             type="email"
             name="email"
