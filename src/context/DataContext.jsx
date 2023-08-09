@@ -20,6 +20,7 @@ const DataProvider = ({ children }) => {
   };
   // deleting data from db
   const deleteBook = async (coverPage, id) => {
+    setLoading(true);
     const removeUrl = (url) => {
       if (url != undefined) {
         let text1 = `https://firebasestorage.googleapis.com/v0/b/uzima-books.appspot.com/o/books%2F`;
