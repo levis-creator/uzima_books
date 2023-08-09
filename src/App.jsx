@@ -26,7 +26,12 @@ function App() {
         <Route element={<ProtectAdmin />}>
           <Route path="/admin">
             <Route index element={<Admin />} />
-            <Route path="all-books" element={<All_books />} />
+            <Route path="all-books">
+              <Route index element={<All_books />} />
+              <Route element={<FormProvider />}>
+                <Route path=":id" element={<Add_book edit={true} />} />
+              </Route>
+            </Route>
             <Route element={<FormProvider />}>
               <Route path="add_book" element={<Add_book />} />
             </Route>

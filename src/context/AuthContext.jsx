@@ -48,7 +48,6 @@ const AuthContextProvider = ({ children }) => {
         } else {
           setAdmin(true);
         }
-        console.log(data);
       };
       isAdmin();
       // checking if user is logged in

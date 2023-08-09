@@ -1,8 +1,22 @@
+import { useEffect, useState } from "react";
 import BookCard from "../components/BookCard";
 import { useNavigate } from "react-router-dom";
+import { collection, getDocs, query } from "firebase/firestore";
+import { db } from "../../../lib/firebase";
 
 const All_books = () => {
   const navigate = useNavigate();
+  const [data, setData] = useState([]);
+  // gets from db
+  const fetchBooks = async () => {
+    await getDocs(collection(db, "books")).then((data) => {
+      const newData = data.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
+      setData(newData);
+    });
+  };
+  useEffect(() => {
+    fetchBooks();
+  }, []);
   return (
     <div className="p-4">
       <div className="flex justify-between items-center">
@@ -15,9 +29,9 @@ const All_books = () => {
         </button>
       </div>
       <div className="grid grid-cols-1 gap-2">
-        <BookCard />
-        <BookCard />
-        <BookCard />
+        {data.map((book) => (
+          <BookCard key={book.id} data={book} />
+        ))}
       </div>
     </div>
   );

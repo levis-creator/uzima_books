@@ -1,16 +1,21 @@
-import { addDoc, collection, getDocs, query, where } from "firebase/firestore";
+import { addDoc, collection, doc, getDoc } from "firebase/firestore";
 import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { BiArrowBack } from "react-icons/bi";
 import ErrorAlert from "../../../components/ErrorAlert";
 import useFormProvider from "../../../hooks/useFormProvider";
 import { db, storage } from "../../../lib/firebase";
+import { useNavigate, useParams } from "react-router-dom";
 
-const Add_book = () => {
+const Add_book = ({ edit }) => {
   // variables
   const [image, setImage] = useState(null);
   const [uploadImage, setUploadImage] = useState(null);
+  const [data, setData] = useState({});
+  const { id } = useParams();
+  const navigate = useNavigate();
   const [input, setinput] = useState({
-    book_name: "",
+    book_name: "hello",
     author: "",
     pages: "",
     category: [],
@@ -37,75 +42,106 @@ const Add_book = () => {
     [setinput]
   );
   // validating data
-  const validateInput = (input) => {
+  const validateInput = () => {
     const validating = Object.values(input);
     validating.forEach((value) => {
       if (value.length == 0) {
         return handleError("Missing fields");
+      } else {
+        return true;
       }
-      return true;
     });
   };
   // dealing with the click button
-  const checkingAuthors = async () => {
-    const q = query(
-      collection(db, "authors"),
-      where("name", "==", input.author)
-    );
-    const storingData = [];
-    const querySnapshot = await getDocs(q);
-    querySnapshot.forEach((doc) => {
-      storingData.push(doc.id);
-    });
-    if (querySnapshot.length == 0) {
-      addDoc(collection(db, "authors"), {
-        name: input.author,
-      }).then((doc) => {
-        setinput((data) => ({
-          ...data,
-          author: doc.id,
-        }));
-      });
-    } else {
-      setinput((data) => ({
-        ...data,
-        author: querySnapshot[0],
-      }));
-    }
-  };
+
   // adding books
   const addingBooks = async () => {
-    await addDoc(collection(db, "books"), input);
-    console.log("success");
+    const data = await addDoc(collection(db, "books"), input);
+    return data;
   };
-  const handleClick = async (e) => {
-    e.preventDefault();
-    validateInput(inputStyling);
-    const bookCoverRef = ref(storage, "books/" + uploadImage.name);
-    const uploadTask = uploadBytesResumable(bookCoverRef, uploadImage);
-    checkingAuthors();
+  // uploading files to database
+  const upload_file = async () => {
     // checking if authors is in database
     try {
-      uploadTask
-        .then((snapshot) => {
-          // this fetches the uploaded image from the database
-          getDownloadURL(snapshot.ref).then((downloadUrl) => {
-            // and sets it to the text data
-            setinput((data) => ({ ...data, cover_page: downloadUrl }));
-          });
-        })
-        .then(() => {
+      const bookCoverRef = ref(storage, "books/" + uploadImage.name);
+      const uploadTask = uploadBytesResumable(bookCoverRef, uploadImage);
+      uploadTask.then((snapshot) => {
+        // this fetches the uploaded image from the database
+        getDownloadURL(snapshot.ref).then((downloadUrl) => {
+          // and sets it to the text data
+          setinput((data) => ({ ...data, cover_page: downloadUrl }));
           addingBooks();
+          console.log("success");
         });
+      });
     } catch (error) {
       console.log(error);
     }
   };
+
+  const handleClick = async (e) => {
+    e.preventDefault();
+    console.warn("running");
+    if (validateInput) {
+      await upload_file();
+      console.log("success");
+    }
+    console.log(input);
+  };
+  const setValues = useCallback(
+    () =>
+      setinput({
+        book_name: data.book_name,
+        category: data.category,
+        pages: data.pages,
+        book_description: data.book_description,
+        author: data.author,
+      }),
+    [data]
+  );
+  // edit functions
+
+  const getBook = useCallback(async () => {
+    const docData = await getDoc(doc(db, "books", id));
+    if (docData.exists()) {
+      setData(docData.data());
+      return setData((data) => ({ ...data, id: docData.id }));
+    } else {
+      return navigate("/all-books");
+    }
+  }, [id, navigate]);
+  // to avoid infinite rerender i have create  two different useEffect
+  // one gets the books from database and the second set the values to be displayed
+
+  useEffect(() => {
+    if (edit) {
+      getBook();
+    }
+  }, [getBook, edit]);
+  useEffect(() => {
+    if (edit) {
+      // getBook();
+      setImage(data.cover_page);
+      setValues();
+    }
+  }, [edit, data.cover_page, setValues]);
+  // handling edit
+  const handleEdit = async () => {
+    console.log("handling edit");
+  };
   return (
     <>
+      {console.log(data)}
       <div className="p-4">
-        {console.log(input)}
-        <div className="font-semibold text-xl">Add book</div>
+        <div className="flex gap-3 ">
+          <button
+            className="text-xl text-slate-600 "
+            onClick={() => navigate(-1)}
+          >
+            <BiArrowBack />
+          </button>
+          <div className="font-semibold text-xl">Add book</div>
+        </div>
         <ErrorAlert error={error} message={message} />
         <div>
           <div className="my-4">
@@ -124,6 +160,7 @@ const Add_book = () => {
               <label>Book name</label>
               <input
                 onChange={handleChange}
+                value={input.book_name}
                 type="text"
                 name="book_name"
                 placeholder="Book name "
@@ -135,6 +172,7 @@ const Add_book = () => {
               <input
                 onChange={handleChange}
                 type="text"
+                value={input.author}
                 name="author"
                 id=""
                 className={inputStyling}
@@ -145,6 +183,7 @@ const Add_book = () => {
               <label>Pages</label>
               <input
                 onChange={handleChange}
+                value={input.pages}
                 type="number"
                 name="pages"
                 id=""
@@ -156,6 +195,7 @@ const Add_book = () => {
               <label>Categories</label>
               <input
                 onChange={handleChange}
+                value={input.category}
                 type="search"
                 name="category"
                 placeholder="category"
@@ -166,6 +206,7 @@ const Add_book = () => {
             <div className="w-full">
               <label>Description</label>
               <textarea
+                value={input.book_description}
                 onChange={handleChange}
                 name="book_description"
                 id=""
@@ -176,7 +217,7 @@ const Add_book = () => {
             </div>
             <div className="w-full flex justify-end">
               <button
-                onClick={handleClick}
+                onClick={edit ? handleEdit : handleClick}
                 className="bg-theme-color1 text-white py-2 w-fit px-4 rounded-xl font-bold"
               >
                 Add
