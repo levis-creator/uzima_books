@@ -1,8 +1,26 @@
-import { MdDelete } from "react-icons/md";
+import { deleteDoc, doc } from "firebase/firestore";
+import { deleteObject, ref } from "firebase/storage";
 import { AiFillEdit } from "react-icons/ai";
-import { Link, useNavigate } from "react-router-dom";
+import { MdDelete } from "react-icons/md";
+import { Link, useParams } from "react-router-dom";
+import { db, storage } from "../../../lib/firebase";
+import useDataProvider from "../../../hooks/useDataProvider";
+
 const BookCard = ({ data }) => {
-  const navigate = useNavigate();
+  const { id } = useParams();
+  const { deleteBook } = useDataProvider();
+  const removeUrl = (url) => {
+    if (url != undefined) {
+      let text1 = `https://firebasestorage.googleapis.com/v0/b/uzima-books.appspot.com/o/books%2F`;
+      let newText = url.replace(text1, "");
+      let index = newText.indexOf("?");
+      var final = newText.substr(0, index);
+      return final;
+    }
+  };
+  const handleDelete = async () => {
+    deleteBook(data.cover_page, data.id);
+  };
   return (
     <div className="rounded-md overflow-hidden gap-2 bg-white w-full h-32 flex shadow-sm pr-4">
       <div className="h-full w-full basis-1/3">
@@ -19,7 +37,10 @@ const BookCard = ({ data }) => {
               <AiFillEdit />
             </button>
           </Link>
-          <button className=" active:bg-slate-100 p-1 text-xl rounded-full text-slate-600">
+          <button
+            className=" active:bg-slate-100 p-1 text-xl rounded-full text-slate-600"
+            onClick={handleDelete}
+          >
             <MdDelete />
           </button>
         </div>

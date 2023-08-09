@@ -1,39 +1,46 @@
-import { useEffect, useState } from "react";
-import BookCard from "../components/BookCard";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { collection, getDocs, query } from "firebase/firestore";
-import { db } from "../../../lib/firebase";
+import useDataProvider from "../../../hooks/useDataProvider";
+import BookCard from "../components/BookCard";
+import useUiContext from "../../../hooks/useUiContext";
+import Loading from "../../../components/Loading";
 
 const All_books = () => {
   const navigate = useNavigate();
-  const [data, setData] = useState([]);
+  const { loading, setLoading } = useUiContext();
   // gets from db
-  const fetchBooks = async () => {
-    await getDocs(collection(db, "books")).then((data) => {
-      const newData = data.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
-      setData(newData);
-    });
-  };
+  const { fetchBooks, books } = useDataProvider();
   useEffect(() => {
-    fetchBooks();
-  }, []);
+    if (books.length == 0) {
+      setLoading(true);
+      fetchBooks();
+      setLoading(false);
+    }
+  });
+
   return (
-    <div className="p-4">
-      <div className="flex justify-between items-center">
-        All books
-        <button
-          className="bg-theme-color1 text-white px-2 py-2 rounded-full"
-          onClick={() => navigate("/admin/add_book")}
-        >
-          Add book
-        </button>
-      </div>
-      <div className="grid grid-cols-1 gap-2">
-        {data.map((book) => (
-          <BookCard key={book.id} data={book} />
-        ))}
-      </div>
-    </div>
+    <>
+      {loading ? (
+        <Loading />
+      ) : (
+        <div className="p-4">
+          <div className="flex justify-between items-center">
+            All books
+            <button
+              className="bg-theme-color1 text-white px-2 py-2 rounded-full"
+              onClick={() => navigate("/admin/add_book")}
+            >
+              Add book
+            </button>
+          </div>
+          <div className="grid grid-cols-1 gap-2">
+            {books.map((book) => (
+              <BookCard key={book.id} data={book} />
+            ))}
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 

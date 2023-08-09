@@ -1,4 +1,4 @@
-import { addDoc, collection, doc, getDoc } from "firebase/firestore";
+import { addDoc, collection, doc, getDoc, updateDoc } from "firebase/firestore";
 import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
 import { useCallback, useEffect, useState } from "react";
 import { BiArrowBack } from "react-icons/bi";
@@ -6,7 +6,9 @@ import ErrorAlert from "../../../components/ErrorAlert";
 import useFormProvider from "../../../hooks/useFormProvider";
 import { db, storage } from "../../../lib/firebase";
 import { useNavigate, useParams } from "react-router-dom";
-
+import useDataProvider from "../../../hooks/useDataProvider";
+import useUiContext from "../../../hooks/useUiContext";
+import Loading from "../../../components/Loading";
 const Add_book = ({ edit }) => {
   // variables
   const [image, setImage] = useState(null);
@@ -14,13 +16,15 @@ const Add_book = ({ edit }) => {
   const [data, setData] = useState({});
   const { id } = useParams();
   const navigate = useNavigate();
+  const { loading, setLoading } = useUiContext();
   const [input, setinput] = useState({
-    book_name: "hello",
+    book_name: "",
     author: "",
     pages: "",
     category: [],
     book_description: "",
   });
+  const { fetchBooks } = useDataProvider();
   const inputStyling = [`w-full border  rounded-lg px-2 py-3`];
   // functions
   const { handleError, error, message } = useFormProvider();
@@ -30,6 +34,8 @@ const Add_book = ({ edit }) => {
       if (e.target.files && e.target.files[0]) {
         setUploadImage(e.target.files[0]);
         setImage(URL.createObjectURL(e.target.files[0]));
+      } else {
+        return false;
       }
     },
     [setUploadImage, setImage]
@@ -81,10 +87,9 @@ const Add_book = ({ edit }) => {
 
   const handleClick = async (e) => {
     e.preventDefault();
-    console.warn("running");
     if (validateInput) {
       await upload_file();
-      console.log("success");
+      fetchBooks();
     }
     console.log(input);
   };
@@ -105,19 +110,21 @@ const Add_book = ({ edit }) => {
     const docData = await getDoc(doc(db, "books", id));
     if (docData.exists()) {
       setData(docData.data());
+      setLoading(false);
       return setData((data) => ({ ...data, id: docData.id }));
     } else {
       return navigate("/all-books");
     }
-  }, [id, navigate]);
+  }, [id, navigate, setLoading]);
   // to avoid infinite rerender i have create  two different useEffect
   // one gets the books from database and the second set the values to be displayed
 
   useEffect(() => {
     if (edit) {
+      setLoading(true);
       getBook();
     }
-  }, [getBook, edit]);
+  }, [getBook, edit, setLoading]);
   useEffect(() => {
     if (edit) {
       // getBook();
@@ -127,105 +134,112 @@ const Add_book = ({ edit }) => {
   }, [edit, data.cover_page, setValues]);
   // handling edit
   const handleEdit = async () => {
-    console.log("handling edit");
+    const bookUpdate = doc(db, "books", id);
+    await updateDoc(bookUpdate, input);
+    if (handleFile) {
+      upload_file();
+    }
   };
   return (
     <>
-      {console.log(data)}
-      <div className="p-4">
-        <div className="flex gap-3 ">
-          <button
-            className="text-xl text-slate-600 "
-            onClick={() => navigate(-1)}
-          >
-            <BiArrowBack />
-          </button>
-          <div className="font-semibold text-xl">Add book</div>
-        </div>
-        <ErrorAlert error={error} message={message} />
-        <div>
-          <div className="my-4">
-            <label>Enter cover page image</label>
-            {image && <img alt="book cover preview" src={image} />}
-            <input
-              type="file"
-              name="cover_image"
-              onChange={handleFile}
-              accept="image/*"
-              className="file:px-3 file:py-2 file:bg-theme-color2 file:text-white file:font-semibold file:rounded-full file:border-0 file:shadow-md py-5"
-            />
+      {loading ? (
+        <Loading />
+      ) : (
+        <div className="p-4">
+          <div className="flex gap-3 ">
+            <button
+              className="text-xl text-slate-600 "
+              onClick={() => navigate(-1)}
+            >
+              <BiArrowBack />
+            </button>
+            <div className="font-semibold text-xl">Add book</div>
           </div>
-          <div className="flex flex-col gap-2 ">
-            <div className="w-full">
-              <label>Book name</label>
+          <ErrorAlert error={error} message={message} />
+          <div>
+            <div className="my-4">
+              <label>Enter cover page image</label>
+              {image && <img alt="book cover preview" src={image} />}
               <input
-                onChange={handleChange}
-                value={input.book_name}
-                type="text"
-                name="book_name"
-                placeholder="Book name "
-                className={inputStyling}
+                type="file"
+                name="cover_image"
+                onChange={handleFile}
+                accept="image/*"
+                className="file:px-3 file:py-2 file:bg-theme-color2 file:text-white file:font-semibold file:rounded-full file:border-0 file:shadow-md py-5"
               />
             </div>
-            <div className="w-full">
-              <label>Author</label>
-              <input
-                onChange={handleChange}
-                type="text"
-                value={input.author}
-                name="author"
-                id=""
-                className={inputStyling}
-                placeholder="Author name"
-              />
-            </div>
-            <div className="w-full">
-              <label>Pages</label>
-              <input
-                onChange={handleChange}
-                value={input.pages}
-                type="number"
-                name="pages"
-                id=""
-                placeholder="Number of pages"
-                className={inputStyling}
-              />
-            </div>
-            <div className="w-full">
-              <label>Categories</label>
-              <input
-                onChange={handleChange}
-                value={input.category}
-                type="search"
-                name="category"
-                placeholder="category"
-                className={inputStyling}
-                id=""
-              />
-            </div>
-            <div className="w-full">
-              <label>Description</label>
-              <textarea
-                value={input.book_description}
-                onChange={handleChange}
-                name="book_description"
-                id=""
-                rows={4}
-                placeholder="Book description"
-                className={inputStyling}
-              />
-            </div>
-            <div className="w-full flex justify-end">
-              <button
-                onClick={edit ? handleEdit : handleClick}
-                className="bg-theme-color1 text-white py-2 w-fit px-4 rounded-xl font-bold"
-              >
-                Add
-              </button>
+            <div className="flex flex-col gap-2 ">
+              <div className="w-full">
+                <label>Book name</label>
+                <input
+                  onChange={handleChange}
+                  value={input.book_name}
+                  type="text"
+                  name="book_name"
+                  placeholder="Book name "
+                  className={inputStyling}
+                />
+              </div>
+              <div className="w-full">
+                <label>Author</label>
+                <input
+                  onChange={handleChange}
+                  type="text"
+                  value={input.author}
+                  name="author"
+                  id=""
+                  className={inputStyling}
+                  placeholder="Author name"
+                />
+              </div>
+              <div className="w-full">
+                <label>Pages</label>
+                <input
+                  onChange={handleChange}
+                  value={input.pages}
+                  type="number"
+                  name="pages"
+                  id=""
+                  placeholder="Number of pages"
+                  className={inputStyling}
+                />
+              </div>
+              <div className="w-full">
+                <label>Categories</label>
+                <input
+                  onChange={handleChange}
+                  value={input.category}
+                  type="search"
+                  name="category"
+                  placeholder="category"
+                  className={inputStyling}
+                  id=""
+                />
+              </div>
+              <div className="w-full">
+                <label>Description</label>
+                <textarea
+                  value={input.book_description}
+                  onChange={handleChange}
+                  name="book_description"
+                  id=""
+                  rows={4}
+                  placeholder="Book description"
+                  className={inputStyling}
+                />
+              </div>
+              <div className="w-full flex justify-end">
+                <button
+                  onClick={edit ? handleEdit : handleClick}
+                  className="bg-theme-color1 text-white py-2 w-fit px-4 rounded-xl font-bold"
+                >
+                  {edit ? "Edit" : "Add"}
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
     </>
   );
 };

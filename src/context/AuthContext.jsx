@@ -4,7 +4,7 @@ import {
   signInWithPopup,
   signOut,
 } from "firebase/auth";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
 import { createContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import useUiContext from "../hooks/useUiContext";
@@ -16,7 +16,7 @@ const AuthContextProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState({});
   const [isLogin, setIsLogin] = useState(false);
   const navigate = useNavigate();
-  const { setAdmin } = useUiContext();
+  const { setAdmin, setLoading } = useUiContext();
 
   useEffect(() => {
     const checkIsLogin = () => {
@@ -31,22 +31,14 @@ const AuthContextProvider = ({ children }) => {
       });
       // checking for admin
       const isAdmin = async () => {
-        const data = [];
-        // checking from the admin database if user is an admin
-        const adminlist = collection(db, "admins");
-        // looking for user
-        const admin = query(
-          adminlist,
-          where("user", "==", `${currentUser.uid}`)
-        );
-        const result = await getDocs(admin);
-        result.forEach((doc) => {
-          data.push(doc.data());
-        });
-        if (data.length == 0) {
-          setAdmin(false);
-        } else {
+        const adminRef = doc(db, "admins", currentUser.uid);
+        const adminSnap = await getDoc(adminRef);
+        if (adminSnap.exists()) {
           setAdmin(true);
+          setLoading(false);
+        } else {
+          setAdmin(false);
+          setLoading(false);
         }
       };
       isAdmin();
@@ -54,7 +46,7 @@ const AuthContextProvider = ({ children }) => {
     };
 
     checkIsLogin();
-  }, [currentUser, setAdmin]);
+  }, [currentUser, setAdmin, setLoading]);
   // sign out function
   const signout = () => {
     signOut(auth).then(() => console.log("sign out successful"));

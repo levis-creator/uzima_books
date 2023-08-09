@@ -49,7 +49,6 @@ const Login_form = () => {
     signInWithEmailAndPassword(auth, data.email, data.password)
       .then(() => navigate("/"))
       .catch((error) => {
-        console.log(error.code);
         if (error.code == "auth/wrong-password") {
           handleError("Please enter a valid password");
         } else if (error.code == "auth/user-not-found") {
