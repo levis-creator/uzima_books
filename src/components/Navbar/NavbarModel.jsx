@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 import useAuthContext from "../../hooks/useAuthContext";
 
 const NavbarModel = ({ isVisible, handleClose }) => {
-  const { signout } = useAuthContext();
+  const { signout, isLogin } = useAuthContext();
   return (
     <>
       <AnimatePresence>
@@ -42,12 +42,14 @@ const NavbarModel = ({ isVisible, handleClose }) => {
                     </li>
                   );
                 })}
-                <button
-                  onClick={() => signout()}
-                  className="bg-white text-theme-color1 rounded-full shadow-lg px-2"
-                >
-                  Sign out
-                </button>
+                {isLogin && (
+                  <button
+                    onClick={() => signout()}
+                    className="bg-white text-theme-color1 rounded-full shadow-lg px-2"
+                  >
+                    Sign out
+                  </button>
+                )}
               </ul>
             </div>
           </motion.div>

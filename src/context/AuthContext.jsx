@@ -17,36 +17,40 @@ const AuthContextProvider = ({ children }) => {
   const [isLogin, setIsLogin] = useState(false);
   const navigate = useNavigate();
   const { setAdmin, setLoading } = useUiContext();
-
+  const [isAdmin, setIsAdmin] = useState(false);
   useEffect(() => {
     const checkIsLogin = () => {
       onAuthStateChanged(auth, (user) => {
+        setLoading(true);
         if (user) {
           setCurrentUser(user);
           setIsLogin(true);
         } else {
           // set react state 'user' to null
           setIsLogin(false);
+          setLoading(false);
         }
       });
       // checking for admin
-      const isAdmin = async () => {
+      const checkisAdmin = async () => {
         const adminRef = doc(db, "admins", currentUser.uid);
         const adminSnap = await getDoc(adminRef);
         if (adminSnap.exists()) {
+          setIsAdmin(true);
           setAdmin(true);
           setLoading(false);
         } else {
-          setAdmin(false);
+          setIsAdmin(false);
           setLoading(false);
         }
       };
-      isAdmin();
+      checkisAdmin();
       // checking if user is logged in
     };
 
     checkIsLogin();
   }, [currentUser, setAdmin, setLoading]);
+
   // sign out function
   const signout = () => {
     signOut(auth).then(() => console.log("sign out successful"));
@@ -62,7 +66,7 @@ const AuthContextProvider = ({ children }) => {
   };
   return (
     <AuthContext.Provider
-      value={{ isLogin, signout, currentUser, googleSignin }}
+      value={{ isLogin, signout, currentUser, googleSignin, isAdmin }}
     >
       {children}
     </AuthContext.Provider>

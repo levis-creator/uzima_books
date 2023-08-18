@@ -11,7 +11,8 @@ import All_books from "./pages/Admin/pages/All_books";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Books from "./pages/books/Books";
-import Home from "./pages/page";
+import Home from "./pages/Home";
+import Book from "./pages/books/Book";
 
 function App() {
   const { admin } = useUiContext();
@@ -20,7 +21,10 @@ function App() {
       <Navbar />
       <Routes>
         <Route path="/" element={admin ? <Navigate to="/admin" /> : <Home />} />
-        <Route path="/books" element={<Books />} />
+        <Route path="/books">
+          <Route index element={<Books />} />
+          <Route path=":id" element={<Book />} />
+        </Route>
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route element={<ProtectAdmin />}>

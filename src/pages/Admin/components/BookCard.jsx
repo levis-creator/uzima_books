@@ -1,25 +1,16 @@
-import { deleteDoc, doc } from "firebase/firestore";
-import { deleteObject, ref } from "firebase/storage";
 import { AiFillEdit } from "react-icons/ai";
 import { MdDelete } from "react-icons/md";
-import { Link, useParams } from "react-router-dom";
-import { db, storage } from "../../../lib/firebase";
+import { Link } from "react-router-dom";
 import useDataProvider from "../../../hooks/useDataProvider";
+import useUiContext from "../../../hooks/useUiContext";
 
 const BookCard = ({ data }) => {
-  const { id } = useParams();
-  const { deleteBook } = useDataProvider();
-  const removeUrl = (url) => {
-    if (url != undefined) {
-      let text1 = `https://firebasestorage.googleapis.com/v0/b/uzima-books.appspot.com/o/books%2F`;
-      let newText = url.replace(text1, "");
-      let index = newText.indexOf("?");
-      var final = newText.substr(0, index);
-      return final;
-    }
-  };
+  const { setRecievedData } = useDataProvider();
+  const { setConfirmAlert } = useUiContext();
+
   const handleDelete = async () => {
-    deleteBook(data.cover_page, data.id);
+    setRecievedData(data);
+    setConfirmAlert(true);
   };
   return (
     <div className="rounded-md overflow-hidden gap-2 bg-white w-full h-32 flex shadow-sm pr-4">

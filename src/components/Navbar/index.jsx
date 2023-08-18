@@ -1,3 +1,4 @@
+import { AiOutlineCaretDown } from "react-icons/ai";
 import { useState } from "react";
 import { AiOutlineMenu, AiOutlineSearch } from "react-icons/ai";
 import { Link, useLocation } from "react-router-dom";
@@ -6,11 +7,13 @@ import avatar from "../../assets/avatar.png";
 import useAuthContext from "../../hooks/useAuthContext";
 import useUiContext from "../../hooks/useUiContext";
 import NavbarModel from "./NavbarModel";
+import DropDown from "./DropDown";
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { admin } = useUiContext();
   const { pathname } = useLocation();
   const { isLogin, currentUser } = useAuthContext();
+  const [openPop, setOpenPop] = useState(false);
   const conditional_visible =
     pathname == "/signup" || pathname == "/login" || admin ? "hidden" : "";
   //closing function
@@ -51,13 +54,24 @@ const Navbar = () => {
               </Link>
             )}
             {isLogin && (
-              <div className="h-12 w-12 rounded-full overflow-hidden">
-                <img
-                  src={
-                    currentUser.photoURL != null ? currentUser.photoURL : avatar
-                  }
-                  className="w-full h-full object-cover"
-                />
+              <div className="relative">
+                <div
+                  className="flex items-center text-slate-500 active:bg-slate-50 cursor-pointer rounded-full"
+                  onClick={() => setOpenPop(!openPop)}
+                >
+                  <div className="h-12 w-12 rounded-full overflow-hidden">
+                    <img
+                      src={
+                        currentUser.photoURL != null
+                          ? currentUser.photoURL
+                          : avatar
+                      }
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <AiOutlineCaretDown />
+                </div>
+                <DropDown isOpen={openPop} />
               </div>
             )}
           </div>

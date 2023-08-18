@@ -32,7 +32,7 @@ const Signup_form = () => {
     setFormData((values) => ({ ...values, [e.target.name]: e.target.value }));
   };
   // handle error
-  const handleError = (message) => {
+  const handleAlert = (message) => {
     setError(true);
     setMessage(message);
     setTimeout(() => setError(false), 5000);
@@ -47,18 +47,18 @@ const Signup_form = () => {
       formData.password.length == 0 ||
       formData.confirmPassword.length == 0
     ) {
-      handleError("fill missing field");
+      handleAlert("fill missing field");
     } else if (
       formData.firstname.length <= 2 ||
       formData.lastname.length <= 2
     ) {
-      handleError("Enter a valid name");
+      handleAlert("Enter a valid name");
     } else if (!validate(formData.email)) {
-      handleError("Please enter a valid email");
+      handleAlert("Please enter a valid email");
     } else if (formData.password != formData.confirmPassword) {
-      handleError("Make your password matches");
+      handleAlert("Make your password matches");
     } else if (formData.password.length < 8) {
-      handleError("Password must be 8 characters or more");
+      handleAlert("Password must be 8 characters or more");
     } else {
       return true;
     }

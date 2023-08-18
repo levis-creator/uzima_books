@@ -6,7 +6,7 @@ import { FcGoogle } from "react-icons/fc";
 import { Link, useNavigate } from "react-router-dom";
 import useAuthContext from "../hooks/useAuthContext";
 import { auth } from "../lib/firebase";
-import Error from "./ErrorAlert.jsx";
+import Error from "./FormAlert.jsx";
 
 const Login_form = () => {
   const input_styles = [
@@ -25,7 +25,7 @@ const Login_form = () => {
     setInput((values) => ({ ...values, [e.target.name]: e.target.value }));
   };
   // error display
-  const handleError = (message) => {
+  const handleAlert = (message) => {
     setError(true);
     setMessage(message);
     setTimeout(() => setError(false), 5000);
@@ -33,9 +33,9 @@ const Login_form = () => {
   // validation function
   const validator = (input) => {
     if (input.email.length == 0 || input.password.length == 0) {
-      handleError("Email or password missing");
+      handleAlert("Email or password missing");
     } else if (!validate(input.email)) {
-      handleError("Enter valid email");
+      handleAlert("Enter valid email");
     }
   };
   // submit button
@@ -50,9 +50,9 @@ const Login_form = () => {
       .then(() => navigate("/"))
       .catch((error) => {
         if (error.code == "auth/wrong-password") {
-          handleError("Please enter a valid password");
+          handleAlert("Please enter a valid password");
         } else if (error.code == "auth/user-not-found") {
-          handleError("User not found");
+          handleAlert("User not found");
         }
       });
   };

@@ -1,18 +1,26 @@
+import { Link } from "react-router-dom";
+
 const Book_card = ({ data }) => {
   return (
-    <div className="rounded-xl bg-white overflow-hidden shadow-md">
-      <div className="w-full h-72 overflow-hidden">
-        <img
-          src={data.published_works[0].cover_art_url}
-          alt="book"
-          className="w-full h-full object-cover"
-        />
+    <Link to={`/books/${data.id}`}>
+      <div className=" overflow-hidden w-5/6 ">
+        <div className=" h-52 overflow-hidden rounded-md shadow-md ">
+          <img
+            src={data.cover_page}
+            alt="book"
+            className="w-full h-full object-cover"
+          />
+        </div>
+        <div className=" py-2">
+          <h2 className="font-medium text-slate-800 text-ellipsis whitespace-nowrap overflow-hidden ">
+            {data.book_name}
+          </h2>
+          <h2 className="text-slate-400 text-xs font-light capitalize">
+            {data.author}
+          </h2>
+        </div>
       </div>
-      <div className="px-3 py-2">
-        <h2 className="font-bold">{data.title}</h2>
-        <h2 className="text-slate-400 text-xs font-light">{data.authors}</h2>
-      </div>
-    </div>
+    </Link>
   );
 };
 

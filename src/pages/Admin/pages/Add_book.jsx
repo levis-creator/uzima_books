@@ -1,143 +1,241 @@
-import { addDoc, collection, doc, getDoc, updateDoc } from "firebase/firestore";
+import {
+  addDoc,
+  collection,
+  doc,
+  serverTimestamp,
+  updateDoc,
+} from "firebase/firestore";
 import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { BiArrowBack } from "react-icons/bi";
-import ErrorAlert from "../../../components/ErrorAlert";
-import useFormProvider from "../../../hooks/useFormProvider";
-import { db, storage } from "../../../lib/firebase";
 import { useNavigate, useParams } from "react-router-dom";
-import useDataProvider from "../../../hooks/useDataProvider";
-import useUiContext from "../../../hooks/useUiContext";
+import FormAlert from "../../../components/FormAlert";
 import Loading from "../../../components/Loading";
+import useDataProvider from "../../../hooks/useDataProvider";
+import useFormProvider from "../../../hooks/useFormProvider";
+import useUiContext from "../../../hooks/useUiContext";
+import { db, storage } from "../../../lib/firebase";
 const Add_book = ({ edit }) => {
   // variables
   const [image, setImage] = useState(null);
   const [uploadImage, setUploadImage] = useState(null);
-  const [data, setData] = useState({});
   const { id } = useParams();
   const navigate = useNavigate();
   const { loading, setLoading } = useUiContext();
+  const url = useRef();
+  const changing = useRef(false);
   const [input, setinput] = useState({
     book_name: "",
-    author: "",
+    author: [],
     pages: "",
     category: [],
     book_description: "",
   });
-  const { fetchBooks } = useDataProvider();
+  const { fetchBooks, delete_image, getBook, book } = useDataProvider();
+  const [file, setFile] = useState(false);
   const inputStyling = [`w-full border  rounded-lg px-2 py-3`];
   // functions
-  const { handleError, error, message } = useFormProvider();
-  // dealing with the image data
-  const handleFile = useCallback(
-    (e) => {
-      if (e.target.files && e.target.files[0]) {
-        setUploadImage(e.target.files[0]);
-        setImage(URL.createObjectURL(e.target.files[0]));
-      } else {
-        return false;
-      }
-    },
-    [setUploadImage, setImage]
-  );
-  // dealing with input changes
-  const handleChange = useCallback(
-    (e) => {
-      setinput((input) => ({ ...input, [e.target.name]: e.target.value }));
-    },
-    [setinput]
-  );
-  // validating data
-  const validateInput = () => {
-    const validating = Object.values(input);
-    validating.forEach((value) => {
-      if (value.length == 0) {
-        return handleError("Missing fields");
-      } else {
-        return true;
-      }
-    });
-  };
-  // dealing with the click button
+  const { handleAlert, error, message, setError, isVisible } =
+    useFormProvider();
 
-  // adding books
-  const addingBooks = async () => {
-    const data = await addDoc(collection(db, "books"), input);
-    return data;
-  };
-  // uploading files to database
-  const upload_file = async () => {
-    // checking if authors is in database
-    try {
-      const bookCoverRef = ref(storage, "books/" + uploadImage.name);
-      const uploadTask = uploadBytesResumable(bookCoverRef, uploadImage);
-      uploadTask.then((snapshot) => {
-        // this fetches the uploaded image from the database
-        getDownloadURL(snapshot.ref).then((downloadUrl) => {
-          // and sets it to the text data
-          setinput((data) => ({ ...data, cover_page: downloadUrl }));
-          addingBooks();
-          console.log("success");
-        });
-      });
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  const handleClick = async (e) => {
-    e.preventDefault();
-    if (validateInput) {
-      await upload_file();
-      fetchBooks();
-    }
-    console.log(input);
-  };
-  const setValues = useCallback(
-    () =>
-      setinput({
-        book_name: data.book_name,
-        category: data.category,
-        pages: data.pages,
-        book_description: data.book_description,
-        author: data.author,
-      }),
-    [data]
-  );
-  // edit functions
-
-  const getBook = useCallback(async () => {
-    const docData = await getDoc(doc(db, "books", id));
-    if (docData.exists()) {
-      setData(docData.data());
-      setLoading(false);
-      return setData((data) => ({ ...data, id: docData.id }));
-    } else {
-      return navigate("/all-books");
-    }
-  }, [id, navigate, setLoading]);
-  // to avoid infinite rerender i have create  two different useEffect
   // one gets the books from database and the second set the values to be displayed
 
   useEffect(() => {
     if (edit) {
       setLoading(true);
-      getBook();
+      getBook(id);
+      setLoading(false);
     }
-  }, [getBook, edit, setLoading]);
+  }, [id, edit, setLoading, getBook]);
+  const setValues = useCallback(() => setinput(book), [book]);
+
   useEffect(() => {
-    if (edit) {
-      // getBook();
-      setImage(data.cover_page);
+    if (edit && !changing.current) {
+      setImage(book.cover_page);
       setValues();
     }
-  }, [edit, data.cover_page, setValues]);
-  // handling edit
+  }, [edit, book, file, setValues, changing]);
+
+  // dealing with the image data
+  const handleFile = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setUploadImage(e.target.files[0]);
+      setFile(true);
+      return setImage(URL.createObjectURL(e.target.files[0]));
+    } else {
+      return setFile(false);
+    }
+  };
+
+  // dealing with input changes
+  const handleChange = (e) => {
+    const arrayvalue = (value) => {
+      let final = [];
+      value = value.split(",");
+      value.forEach((item) => {
+        final.push(item.toLowerCase());
+      });
+      return final;
+    };
+    if ([e.target.name] == "category" || [e.target.name] == "author") {
+      const value = arrayvalue(e.target.value);
+      setinput((input) => ({
+        ...input,
+        [e.target.name]: value,
+      }));
+    } else {
+      setinput((input) => ({
+        ...input,
+        [e.target.name]: e.target.value,
+      }));
+    }
+    changing.current = true;
+  };
+
+  // validating data
+  const validateInput = () => {
+    const validating = Object.values(input);
+    validating.forEach((value) => {
+      if (value.length == 0) {
+        setError(true);
+        handleAlert("Missing fields");
+        return false;
+      } else {
+        return true;
+      }
+    });
+  };
+
+  // adding books
+  const addingBooks = async (input) => {
+    const data = await addDoc(collection(db, "books"), input);
+    console.log("book");
+    return data;
+  };
+
+  // uploading files to database
+  const upload_file = async () => {
+    setLoading(true);
+    // checking if authors is in database
+    try {
+      const bookCoverRef = ref(storage, "books/" + uploadImage.name);
+      const uploadTask = await uploadBytesResumable(
+        bookCoverRef,
+        uploadImage
+      ).then((snapshot) => {
+        // this fetches the uploaded image from the database
+        getDownloadURL(snapshot.ref).then((downloadUrl) => {
+          // and sets it to the text data
+          url.current = true;
+          if (edit) {
+            setinput((data) => ({
+              ...data,
+              cover_page: downloadUrl,
+              updatedAt: serverTimestamp(),
+            }));
+          } else {
+            setinput((data) => ({
+              ...data,
+              cover_page: downloadUrl,
+              createdAt: serverTimestamp(),
+            }));
+          }
+        });
+      });
+      return uploadTask;
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  // updating book to the database
+  const updateBook = useCallback(
+    async (input) => {
+      const bookUpdate = doc(db, "books", id);
+      const updating = await updateDoc(bookUpdate, input);
+      return updating;
+    },
+    [id]
+  );
+  // this will run after the image has been uploaded
+  useEffect(() => {
+    if (url.current && !edit) {
+      addingBooks(input);
+      setLoading(false);
+      setError(false);
+      handleAlert("successfully added");
+      url.current = false;
+      fetchBooks();
+    } else if (edit && url.current) {
+      updateBook(input);
+      setLoading(false);
+      setError(false);
+      handleAlert("successfully Updated");
+      url.current = false;
+      fetchBooks();
+    }
+  }, [
+    url,
+    input,
+    fetchBooks,
+    setLoading,
+    edit,
+    updateBook,
+    handleAlert,
+    setError,
+  ]);
+
+  // dealing with the click button
+  const handleClick = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    if (validateInput) {
+      try {
+        await upload_file();
+      } catch (error) {
+        console.log(error);
+      }
+    } else {
+      setLoading(false);
+    }
+  };
+  // edit functions
   const handleEdit = async () => {
-    const bookUpdate = doc(db, "books", id);
-    await updateDoc(bookUpdate, input);
-    if (handleFile) {
-      upload_file();
+    // this is meant to avoid repetition
+
+    // when file changes
+    if (file) {
+      // it will check whether the image url is empty or not
+      if (book.cover_page !== undefined || book.cover_page !== null) {
+        // if it is not empty it will delete the existing file from the database
+        delete_image(input.cover_page)
+          .then(() => {
+            // uploads and update the database
+            upload_file();
+            setError(false);
+            handleAlert("Success");
+          })
+          .catch((error) => {
+            // in the case where the file being deleted is not found it will just upload the selected file
+            if (error.code == "storage/object-not-found") {
+              upload_file();
+              setError(false);
+              handleAlert("success");
+            } else {
+              console.error(error);
+            }
+          });
+      } else {
+        upload_file();
+        handleAlert("Success");
+      }
+    } else {
+      setLoading(true);
+      console.log(input);
+      updateBook(input);
+      fetchBooks();
+      setLoading(false);
+      handleAlert("Success");
     }
   };
   return (
@@ -155,7 +253,7 @@ const Add_book = ({ edit }) => {
             </button>
             <div className="font-semibold text-xl">Add book</div>
           </div>
-          <ErrorAlert error={error} message={message} />
+          <FormAlert error={error} message={message} isVisible={isVisible} />
           <div>
             <div className="my-4">
               <label>Enter cover page image</label>

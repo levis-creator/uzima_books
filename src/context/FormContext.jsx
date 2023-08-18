@@ -5,15 +5,18 @@ export const FormContext = createContext();
 
 const FormProvider = ({ children }) => {
   const [error, setError] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
   const [message, setMessage] = useState("");
   // error display
-  const handleError = (message) => {
-    setError(true);
+  const handleAlert = (message) => {
+    setIsVisible(true);
     setMessage(message);
-    setTimeout(() => setError(false), 5000);
+    setTimeout(() => setIsVisible(false), 5000);
   };
   return (
-    <FormContext.Provider value={{ error, message, handleError }}>
+    <FormContext.Provider
+      value={{ error, message, handleAlert, setError, setIsVisible, isVisible }}
+    >
       <Outlet />
     </FormContext.Provider>
   );
