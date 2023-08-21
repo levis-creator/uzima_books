@@ -1,28 +1,21 @@
+import _ from "lodash";
 import { useEffect, useState } from "react";
-import { fetch_data } from "../../api/data/sample";
 import Book_card from "../../components/Book_card";
-import Pagination from "../../components/Pagination";
-import Loading from "../Loading";
+import Loading from "../../components/Loading";
+import useDataProvider from "../../hooks/useDataProvider";
+import useUiContext from "../../hooks/useUiContext";
 const Books = () => {
-  const [book, set_book] = useState([]);
-  const items_per_page = 10;
-  const [current_page, set_current_page] = useState(1);
-  const [total_pages, set_total_pages] = useState(0);
-  const [loading, set_loading] = useState(true);
+  const { book, paginate, showNext, showPrev, page, setPage } =
+    useDataProvider();
+  const { loading } = useUiContext();
+  const [entry, setEntry] = useState(false);
   useEffect(() => {
-    const fetch = async () => {
-      const data = await fetch_data(items_per_page, current_page);
-
-      set_total_pages(Math.ceil(data.total_pages / items_per_page));
-      set_book(data.results);
-      set_loading(false);
-    };
-    fetch();
-  }, [current_page]);
-  const handle_page_change = ({ selected: selectedPage }) => {
-    set_current_page(selectedPage);
-  };
-
+    if (!entry) {
+      paginate();
+      setPage(1);
+      setEntry(true);
+    }
+  }, [paginate, entry, setPage]);
   return (
     <>
       {loading ? (
@@ -31,18 +24,30 @@ const Books = () => {
         <div>
           <div className="p-4 grid grid-cols-2 gap-4 sm:grid-cols-3 sm:px-8">
             {console.log(book)}
-            {console.log(total_pages)}
-            {book.map((item) => (
+
+            {_.map(book, (item) => (
               <Book_card key={item.work_id} data={item} />
             ))}
           </div>
 
           <div className="w-full">
-            <Pagination
-              handle_page_change={handle_page_change}
-              total_pages={total_pages}
-              initial_page={current_page}
-            />
+            <div className="w-full flex justify-center gap-x-3 items-center">
+              <button
+                onClick={() => showPrev({ item: book[0] })}
+                className={`bg-theme-color1 text-white p-2 rounded-l-2xl disabled:bg-neutral-500`}
+                disabled={page == 1 ? true : false}
+              >
+                Prev
+              </button>
+              {page}
+              <button
+                onClick={() => showNext({ item: book[book.length - 1] })}
+                className="bg-theme-color1 text-white p-2 rounded-r-2xl disabled:bg-neutral-500"
+                disabled={book.length < 5 ? true : false}
+              >
+                Next
+              </button>
+            </div>
           </div>
         </div>
       )}

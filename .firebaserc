@@ -1,5 +1,8 @@
 {
   "projects": {
-    "default": "uzima-books"
-  }
+    "default": "uzimabooksdc",
+    "staging": "uzimabooksdc"
+  },
+  "targets": {},
+  "etags": {}
 }

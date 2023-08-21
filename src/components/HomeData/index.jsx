@@ -27,7 +27,7 @@ const Index = ({ category }) => {
   return (
     <div className="space-y-5">
       <h2 className=" text-xl capitalize  font-light">{category}</h2>
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 max-w-full">
         {_.map(data, (data) => (
           <Book_card key={data.id} data={data} />
         ))}
